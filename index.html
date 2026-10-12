@@ -320,6 +320,21 @@
     <button type="button" class="lightbox-next" id="lightboxNext" aria-label="Next">&#10095;</button>
   </div>
 
+  <!-- Firebase (likes & comments) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAb_NRo0J53OMQBjrayGUhqhPlxc4_YwTc",
+      authDomain: "wedding-guest-photos-7b3bf.firebaseapp.com",
+      projectId: "wedding-guest-photos-7b3bf",
+      storageBucket: "wedding-guest-photos-7b3bf.firebasestorage.app",
+      messagingSenderId: "757902749410",
+      appId: "1:757902749410:web:2d23d5a967bcdb9117b8bb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    window.db = firebase.firestore();
+  </script>
   <script src="script.js"></script>
 </body>
 </html>
