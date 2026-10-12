@@ -528,7 +528,7 @@ body::after { bottom: 25%; right: 12px; transform: scaleX(-1); }
 /* ===== Floating wedding music player (add-on only) ===== */
 .wedding-music {
   position: fixed;
-  right: 16px;
+  left: 16px;
   bottom: 16px;
   z-index: 1200;
   font-family: var(--sans);
@@ -549,7 +549,7 @@ body::after { bottom: 25%; right: 12px; transform: scaleX(-1); }
 .wedding-music-toggle span { font-size: 1.15rem; }
 .wedding-music-panel {
   position: absolute;
-  right: 0;
+  left: 0;
   bottom: 56px;
   width: min(340px, calc(100vw - 28px));
   padding: 12px;
@@ -590,7 +590,7 @@ body::after { bottom: 25%; right: 12px; transform: scaleX(-1); }
   line-height: 1.4;
 }
 @media (max-width: 480px) {
-  .wedding-music { right: 12px; bottom: 12px; }
+  .wedding-music { left: 12px; bottom: 12px; }
   .wedding-music-toggle { padding: 10px 14px; font-size: 0.84rem; }
 }
 
