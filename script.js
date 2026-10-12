@@ -240,6 +240,183 @@ async function uploadToCloudinary(file) {
   return response.json();
 }
 
+
+// ===== Firebase likes & comments =====
+function getGuestId() {
+  let id = localStorage.getItem('weddingGuestId');
+  if (!id) {
+    id = 'g_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem('weddingGuestId', id);
+  }
+  return id;
+}
+
+function safePhotoId(publicId) {
+  return String(publicId || '').replace(/\//g, '_');
+}
+
+async function getLikeState(photoId) {
+  if (!window.db) return { count: 0, liked: false };
+  try {
+    const ref = db.collection('likes').doc(photoId);
+    const snap = await ref.get();
+    if (!snap.exists) return { count: 0, liked: false };
+    const data = snap.data() || {};
+    const users = data.users || {};
+    return { count: data.count || 0, liked: !!users[getGuestId()] };
+  } catch (e) {
+    console.warn('like read', e);
+    return { count: 0, liked: false };
+  }
+}
+
+async function toggleLike(photoId, btn, countEl) {
+  if (!window.db) {
+    alert('Likes are not available yet.');
+    return;
+  }
+  const uid = getGuestId();
+  const ref = db.collection('likes').doc(photoId);
+  try {
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      let count = 0;
+      let users = {};
+      if (snap.exists) {
+        const d = snap.data() || {};
+        count = d.count || 0;
+        users = Object.assign({}, d.users || {});
+      }
+      if (users[uid]) {
+        delete users[uid];
+        count = Math.max(0, count - 1);
+        btn.classList.remove('liked');
+        btn.textContent = '♡ Like';
+      } else {
+        users[uid] = true;
+        count += 1;
+        btn.classList.add('liked');
+        btn.textContent = '♥ Liked';
+      }
+      tx.set(ref, { count, users, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      countEl.textContent = count === 1 ? '1 like' : count + ' likes';
+    });
+  } catch (e) {
+    console.error(e);
+    alert('Could not update like. Please try again.');
+  }
+}
+
+async function loadComments(photoId, listEl) {
+  if (!window.db) {
+    listEl.innerHTML = '';
+    return;
+  }
+  try {
+    const snap = await db.collection('comments')
+      .where('photoId', '==', photoId)
+      .orderBy('createdAt', 'asc')
+      .limit(30)
+      .get();
+    if (snap.empty) {
+      listEl.innerHTML = '<div class="comment-item" style="color:#999">No comments yet</div>';
+      return;
+    }
+    listEl.innerHTML = snap.docs.map(doc => {
+      const d = doc.data();
+      const name = (d.name || 'Guest').replace(/</g, '&lt;');
+      const text = (d.text || '').replace(/</g, '&lt;');
+      return `<div class="comment-item"><strong>${name}:</strong> ${text}</div>`;
+    }).join('');
+  } catch (e) {
+    console.warn('comments', e);
+    // Fallback without orderBy if index missing
+    try {
+      const snap = await db.collection('comments').where('photoId', '==', photoId).limit(30).get();
+      const items = snap.docs.map(doc => doc.data()).sort((a, b) => {
+        const ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+        const tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+        return ta - tb;
+      });
+      listEl.innerHTML = items.length
+        ? items.map(d => {
+            const name = (d.name || 'Guest').replace(/</g, '&lt;');
+            const text = (d.text || '').replace(/</g, '&lt;');
+            return `<div class="comment-item"><strong>${name}:</strong> ${text}</div>`;
+          }).join('')
+        : '<div class="comment-item" style="color:#999">No comments yet</div>';
+    } catch (e2) {
+      listEl.innerHTML = '<div class="comment-item" style="color:#999">Comments loading…</div>';
+    }
+  }
+}
+
+async function postComment(photoId, nameInput, textInput, listEl, btn) {
+  if (!window.db) {
+    alert('Comments are not available yet.');
+    return;
+  }
+  const name = (nameInput.value || 'Guest').trim().slice(0, 40);
+  const text = (textInput.value || '').trim().slice(0, 300);
+  if (!text) {
+    alert('Please write a comment.');
+    return;
+  }
+  btn.disabled = true;
+  try {
+    await db.collection('comments').add({
+      photoId,
+      name: name || 'Guest',
+      text,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    textInput.value = '';
+    await loadComments(photoId, listEl);
+  } catch (e) {
+    console.error(e);
+    alert('Could not post comment. Please try again.');
+  }
+  btn.disabled = false;
+}
+
+function socialBlock(photoId) {
+  return `
+    <div class="guest-social" data-photo-id="${photoId}">
+      <div class="like-row">
+        <button type="button" class="like-btn" data-action="like">♡ Like</button>
+        <span class="like-count">0 likes</span>
+      </div>
+      <div class="comment-list"></div>
+      <div class="comment-form">
+        <input type="text" class="comment-name" placeholder="Your name (optional)" maxlength="40" />
+        <textarea class="comment-text" placeholder="Write a comment..." maxlength="300" rows="2"></textarea>
+        <button type="button" class="comment-submit" data-action="comment">Post</button>
+      </div>
+    </div>`;
+}
+
+async function bindSocialForItem(root) {
+  const photoId = root.getAttribute('data-photo-id');
+  if (!photoId) return;
+  const likeBtn = root.querySelector('[data-action="like"]');
+  const countEl = root.querySelector('.like-count');
+  const listEl = root.querySelector('.comment-list');
+  const nameInput = root.querySelector('.comment-name');
+  const textInput = root.querySelector('.comment-text');
+  const postBtn = root.querySelector('[data-action="comment"]');
+
+  const state = await getLikeState(photoId);
+  countEl.textContent = state.count === 1 ? '1 like' : state.count + ' likes';
+  if (state.liked) {
+    likeBtn.classList.add('liked');
+    likeBtn.textContent = '♥ Liked';
+  }
+  likeBtn.addEventListener('click', () => toggleLike(photoId, likeBtn, countEl));
+  await loadComments(photoId, listEl);
+  postBtn.addEventListener('click', () => postComment(photoId, nameInput, textInput, listEl, postBtn));
+}
+
+
 // Load live guest gallery from Cloudinary list endpoint
 async function loadGuestGallery() {
   const debugEl = document.getElementById('galleryDebug');
@@ -290,22 +467,32 @@ async function loadGuestGallery() {
       const publicId = r.public_id;
       const isVideo = (r.resource_type === 'video') || ['mp4','mov','webm','avi'].includes(format);
 
+      const pid = safePhotoId(publicId);
       if (isVideo) {
         const videoUrl = `https://res.cloudinary.com/${CLOUD_NAME}/video/upload/v${version}/${publicId}.${format}`;
         return `
           <div class="guest-item">
-            <video controls playsinline preload="metadata" src="${videoUrl}"></video>
+            <div class="media-wrap">
+              <video controls playsinline preload="metadata" src="${videoUrl}"></video>
+            </div>
+            ${socialBlock(pid)}
           </div>`;
       }
 
       const url = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/v${version}/${publicId}.${format}`;
       return `
         <div class="guest-item">
-          <a href="${url}" target="_blank" rel="noopener">
-            <img src="${url}" alt="Guest photo" loading="lazy" onerror="this.parentElement.parentElement.style.display='none'">
-          </a>
+          <div class="media-wrap">
+            <a href="${url}" target="_blank" rel="noopener">
+              <img src="${url}" alt="Guest photo" loading="lazy" onerror="this.closest('.guest-item').style.display='none'">
+            </a>
+          </div>
+          ${socialBlock(pid)}
         </div>`;
     }).join('');
+
+    // Bind likes & comments
+    guestGallery.querySelectorAll('.guest-social').forEach(el => bindSocialForItem(el));
 
     if (debugEl) {
       debugEl.hidden = false;
