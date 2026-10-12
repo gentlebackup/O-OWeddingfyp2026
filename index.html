@@ -11,18 +11,18 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- Wedding welcome invitation: one tap can start background music on supported browsers -->
-  <section class="welcome-screen" id="welcomeScreen" aria-label="Wedding invitation welcome">
-    <div class="welcome-frame">
-      <div class="welcome-flower" aria-hidden="true">❀</div>
-      <p class="welcome-kicker">Together with their families</p>
-      <p class="welcome-intro">Joyfully invite you to celebrate the wedding of</p>
-      <h1 class="welcome-names">Oluwapelumi <span>&amp;</span><br />Oluwasegun</h1>
-      <div class="welcome-divider"><span></span> ♡ <span></span></div>
-      <p class="welcome-date">17 · OCTOBER · 2026</p>
-      <p class="welcome-venue">Royal Rex Event Center · Ikotun, Lagos</p>
-      <button type="button" class="welcome-open" id="welcomeOpen">Open Invitation <span aria-hidden="true">↗</span></button>
-      <p class="welcome-footer">A beautiful beginning · A forever promise</p>
+  <!-- Delayed wedding invitation popup -->
+  <section class="invite-popup" id="invitePopup" aria-label="Wedding invitation" hidden>
+    <button class="invite-popup-backdrop" type="button" aria-label="Close invitation popup" id="invitePopupBackdrop"></button>
+    <div class="invite-popup-card" role="dialog" aria-modal="true" aria-labelledby="invitePopupTitle">
+      <div class="invite-popup-heart" aria-hidden="true">♡</div>
+      <p class="invite-popup-kicker">A little note from us</p>
+      <h2 id="invitePopupTitle">You're warmly invited</h2>
+      <p class="invite-popup-copy">Welcome to the wedding website of</p>
+      <p class="invite-popup-names">Oluwapelumi <span>&amp;</span> Oluwasegun</p>
+      <p class="invite-popup-date">17 October 2026 · Ikotun, Lagos</p>
+      <button type="button" class="invite-popup-open" id="welcomeOpen">Open with love <span aria-hidden="true">♥</span></button>
+      <p class="invite-popup-footer">With love, always</p>
     </div>
   </section>
 
@@ -371,7 +371,7 @@
       const source = document.getElementById("weddingAudioSource");
       const trackSelect = document.getElementById("weddingMusicTrack");
       const trackTitle = document.getElementById("weddingMusicTrackTitle");
-      const welcomeScreen = document.getElementById("welcomeScreen");
+      const welcomeScreen = document.getElementById("invitePopup");
       const welcomeOpen = document.getElementById("welcomeOpen");
       const tracks = {
         "ire": {
@@ -388,21 +388,28 @@
         }
       };
 
+      function closeInvitePopup() {
+        welcomeScreen.classList.add("invite-popup-closing");
+        window.setTimeout(function () {
+          welcomeScreen.hidden = true;
+          welcomeScreen.classList.remove("invite-popup-closing");
+        }, 250);
+      }
+
       welcomeOpen.addEventListener("click", function () {
-        welcomeScreen.classList.add("welcome-screen-closing");
-        document.body.classList.remove("welcome-active");
-        // A real tap on the invitation gives the browser its best chance to allow music.
+        closeInvitePopup();
+        // The invitation tap gives the browser its best chance to allow music.
         player.volume = 0.15;
         const playAttempt = player.play();
         if (playAttempt && typeof playAttempt.catch === "function") {
-          playAttempt.catch(function () {
-            // Some browsers may still require the guest to press Play manually.
-          });
+          playAttempt.catch(function () {});
         }
-        window.setTimeout(function () {
-          welcomeScreen.hidden = true;
-        }, 450);
       });
+
+      document.getElementById("invitePopupBackdrop").addEventListener("click", closeInvitePopup);
+      window.setTimeout(function () {
+        welcomeScreen.hidden = false;
+      }, 3000);
 
       trackSelect.addEventListener("change", function () {
         const track = tracks[trackSelect.value];
