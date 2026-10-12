@@ -320,6 +320,58 @@
     <button type="button" class="lightbox-next" id="lightboxNext" aria-label="Next">&#10095;</button>
   </div>
 
+
+  <!-- Wedding music: randomly selected Spotify track, with playback controlled by the guest -->
+  <div class="wedding-music" id="weddingMusic">
+    <button type="button" class="wedding-music-toggle" id="weddingMusicToggle" aria-expanded="false" aria-controls="weddingMusicPanel">
+      <span aria-hidden="true">♫</span> Wedding Music
+    </button>
+    <div class="wedding-music-panel" id="weddingMusicPanel" hidden>
+      <div class="wedding-music-heading">
+        <span>Our Love Soundtrack ♡</span>
+        <button type="button" id="weddingMusicClose" aria-label="Close music player">×</button>
+      </div>
+      <iframe id="weddingSpotifyPlayer" title="Random wedding song on Spotify" src="about:blank" width="100%" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+      <p class="wedding-music-note">Tap play in the player to listen. Spotify/browser rules may require this tap.</p>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tracks = [
+        "2Bv0cdN1Bnf1wnXytWyqJd",
+        "6SnoE34aCPKuphCF3c7AEA",
+        "5BFEc76XGgq7jvfUPZcgtr",
+        "7xdHQUxVj0aOAvUOGLCYj3",
+        "2HU1kMSEXDJsqWJdxuCo4j",
+        "3nT2nrfb3FMLg03W4mPaBl"
+      ];
+      const selectedTrack = tracks[Math.floor(Math.random() * tracks.length)];
+      const toggle = document.getElementById("weddingMusicToggle");
+      const panel = document.getElementById("weddingMusicPanel");
+      const close = document.getElementById("weddingMusicClose");
+      const player = document.getElementById("weddingSpotifyPlayer");
+      let playerLoaded = false;
+
+      function openPlayer() {
+        panel.hidden = false;
+        toggle.setAttribute("aria-expanded", "true");
+        if (!playerLoaded) {
+          player.src = "https://open.spotify.com/embed/track/" + selectedTrack + "?utm_source=generator";
+          playerLoaded = true;
+        }
+      }
+      function closePlayer() {
+        panel.hidden = true;
+        toggle.setAttribute("aria-expanded", "false");
+      }
+      toggle.addEventListener("click", function () {
+        if (panel.hidden) openPlayer();
+        else closePlayer();
+      });
+      close.addEventListener("click", closePlayer);
+    })();
+  </script>
+
   <!-- Firebase (likes & comments) -->
   <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
