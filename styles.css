@@ -593,3 +593,18 @@ body::after { bottom: 25%; right: 12px; transform: scaleX(-1); }
   .wedding-music { right: 12px; bottom: 12px; }
   .wedding-music-toggle { padding: 10px 14px; font-size: 0.84rem; }
 }
+
+
+/* Direct Cloudinary wedding audio player */
+.wedding-music-panel audio {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin-top: 8px;
+}
+.wedding-music-track-title {
+  margin: 2px 2px 6px;
+  color: var(--sage-deep);
+  font-size: 0.84rem;
+  font-weight: 500;
+}
