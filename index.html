@@ -351,6 +351,8 @@
       const panel = document.getElementById("weddingMusicPanel");
       const close = document.getElementById("weddingMusicClose");
       const player = document.getElementById("weddingAudioPlayer");
+      // Set a soft background-music level where the browser supports scripted volume.
+      player.volume = 0.15;
       const source = document.getElementById("weddingAudioSource");
       const trackSelect = document.getElementById("weddingMusicTrack");
       const trackTitle = document.getElementById("weddingMusicTrackTitle");
