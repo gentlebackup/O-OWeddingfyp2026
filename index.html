@@ -11,6 +11,21 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- Wedding welcome invitation: one tap can start background music on supported browsers -->
+  <section class="welcome-screen" id="welcomeScreen" aria-label="Wedding invitation welcome">
+    <div class="welcome-frame">
+      <div class="welcome-flower" aria-hidden="true">❀</div>
+      <p class="welcome-kicker">Together with their families</p>
+      <p class="welcome-intro">Joyfully invite you to celebrate the wedding of</p>
+      <h1 class="welcome-names">Oluwapelumi <span>&amp;</span><br />Oluwasegun</h1>
+      <div class="welcome-divider"><span></span> ♡ <span></span></div>
+      <p class="welcome-date">17 · OCTOBER · 2026</p>
+      <p class="welcome-venue">Royal Rex Event Center · Ikotun, Lagos</p>
+      <button type="button" class="welcome-open" id="welcomeOpen">Open Invitation <span aria-hidden="true">↗</span></button>
+      <p class="welcome-footer">A beautiful beginning · A forever promise</p>
+    </div>
+  </section>
+
   <!-- Decorative corner flourishes -->
   <div class="page-ornament top-left" aria-hidden="true"></div>
   <div class="page-ornament top-right" aria-hidden="true"></div>
@@ -356,6 +371,8 @@
       const source = document.getElementById("weddingAudioSource");
       const trackSelect = document.getElementById("weddingMusicTrack");
       const trackTitle = document.getElementById("weddingMusicTrackTitle");
+      const welcomeScreen = document.getElementById("welcomeScreen");
+      const welcomeOpen = document.getElementById("welcomeOpen");
       const tracks = {
         "ire": {
           title: "Adekunle Gold — Ire",
@@ -370,6 +387,22 @@
           url: "https://res.cloudinary.com/bd7ezy8q/video/upload/v1791838497/Kizz_Daniel_-_Mama__mp3.pm.mp3"
         }
       };
+
+      welcomeOpen.addEventListener("click", function () {
+        welcomeScreen.classList.add("welcome-screen-closing");
+        document.body.classList.remove("welcome-active");
+        // A real tap on the invitation gives the browser its best chance to allow music.
+        player.volume = 0.15;
+        const playAttempt = player.play();
+        if (playAttempt && typeof playAttempt.catch === "function") {
+          playAttempt.catch(function () {
+            // Some browsers may still require the guest to press Play manually.
+          });
+        }
+        window.setTimeout(function () {
+          welcomeScreen.hidden = true;
+        }, 450);
+      });
 
       trackSelect.addEventListener("change", function () {
         const track = tracks[trackSelect.value];
