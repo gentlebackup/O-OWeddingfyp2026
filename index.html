@@ -331,9 +331,14 @@
         <span>Our Love Soundtrack ♡</span>
         <button type="button" id="weddingMusicClose" aria-label="Close music player">×</button>
       </div>
-      <p class="wedding-music-track-title">Adekunle Gold — Ire</p>
+      <label class="wedding-music-select-label" for="weddingMusicTrack">Choose a song</label>
+      <select id="weddingMusicTrack" class="wedding-music-select">
+        <option value="ire">Adekunle Gold — Ire</option>
+        <option value="by-you">Simi — By You</option>
+      </select>
+      <p class="wedding-music-track-title" id="weddingMusicTrackTitle">Adekunle Gold — Ire</p>
       <audio id="weddingAudioPlayer" controls preload="auto" autoplay loop>
-        <source src="https://res.cloudinary.com/bd7ezy8q/video/upload/v1791838488/Adekunle_Gold_-_Ire.mp3" type="audio/mpeg">
+        <source id="weddingAudioSource" src="https://res.cloudinary.com/bd7ezy8q/video/upload/v1791838488/Adekunle_Gold_-_Ire.mp3" type="audio/mpeg">
         Your browser does not support the audio player.
       </audio>
       <p class="wedding-music-note">If music doesn't start automatically, tap Play here or the music button. iPhone browsers may require a tap before sound can play.</p>
@@ -345,6 +350,33 @@
       const panel = document.getElementById("weddingMusicPanel");
       const close = document.getElementById("weddingMusicClose");
       const player = document.getElementById("weddingAudioPlayer");
+      const source = document.getElementById("weddingAudioSource");
+      const trackSelect = document.getElementById("weddingMusicTrack");
+      const trackTitle = document.getElementById("weddingMusicTrackTitle");
+      const tracks = {
+        "ire": {
+          title: "Adekunle Gold — Ire",
+          url: "https://res.cloudinary.com/bd7ezy8q/video/upload/v1791838488/Adekunle_Gold_-_Ire.mp3"
+        },
+        "by-you": {
+          title: "Simi — By You",
+          url: "https://res.cloudinary.com/bd7ezy8q/video/upload/v1791838495/Simi-By-You.mp3"
+        }
+      };
+
+      trackSelect.addEventListener("change", function () {
+        const track = tracks[trackSelect.value];
+        if (!track) return;
+        const shouldResume = !player.paused;
+        player.pause();
+        source.src = track.url;
+        player.load();
+        trackTitle.textContent = track.title;
+        if (shouldResume) {
+          const attempt = player.play();
+          if (attempt && typeof attempt.catch === "function") attempt.catch(function () {});
+        }
+      });
 
       function openPlayer() {
         panel.hidden = false;
