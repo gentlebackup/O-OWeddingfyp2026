@@ -321,54 +321,61 @@
   </div>
 
 
-  <!-- Wedding music: randomly selected Spotify track, with playback controlled by the guest -->
+  <!-- Wedding music: direct Cloudinary audio player -->
   <div class="wedding-music" id="weddingMusic">
     <button type="button" class="wedding-music-toggle" id="weddingMusicToggle" aria-expanded="false" aria-controls="weddingMusicPanel">
-      <span aria-hidden="true">♫</span> Wedding Music
+      <span aria-hidden="true">♫</span> Play Wedding Music
     </button>
     <div class="wedding-music-panel" id="weddingMusicPanel" hidden>
       <div class="wedding-music-heading">
         <span>Our Love Soundtrack ♡</span>
         <button type="button" id="weddingMusicClose" aria-label="Close music player">×</button>
       </div>
-      <iframe id="weddingSpotifyPlayer" title="Random wedding song on Spotify" src="about:blank" width="100%" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-      <p class="wedding-music-note">Tap play in the player to listen. Spotify/browser rules may require this tap.</p>
+      <p class="wedding-music-track-title">Adekunle Gold — Ire</p>
+      <audio id="weddingAudioPlayer" controls preload="auto" autoplay loop>
+        <source src="https://res.cloudinary.com/bd7ezy8q/video/upload/v1791838488/Adekunle_Gold_-_Ire.mp3" type="audio/mpeg">
+        Your browser does not support the audio player.
+      </audio>
+      <p class="wedding-music-note">If music doesn't start automatically, tap Play here or the music button. iPhone browsers may require a tap before sound can play.</p>
     </div>
   </div>
   <script>
     (function () {
-      const tracks = [
-        "2Bv0cdN1Bnf1wnXytWyqJd",
-        "6SnoE34aCPKuphCF3c7AEA",
-        "5BFEc76XGgq7jvfUPZcgtr",
-        "7xdHQUxVj0aOAvUOGLCYj3",
-        "2HU1kMSEXDJsqWJdxuCo4j",
-        "3nT2nrfb3FMLg03W4mPaBl"
-      ];
-      const selectedTrack = tracks[Math.floor(Math.random() * tracks.length)];
       const toggle = document.getElementById("weddingMusicToggle");
       const panel = document.getElementById("weddingMusicPanel");
       const close = document.getElementById("weddingMusicClose");
-      const player = document.getElementById("weddingSpotifyPlayer");
-      let playerLoaded = false;
+      const player = document.getElementById("weddingAudioPlayer");
 
       function openPlayer() {
         panel.hidden = false;
         toggle.setAttribute("aria-expanded", "true");
-        if (!playerLoaded) {
-          player.src = "https://open.spotify.com/embed/track/" + selectedTrack + "?utm_source=generator";
-          playerLoaded = true;
+        // Try playback directly inside the user's tap gesture for better iPhone compatibility.
+        const playAttempt = player.play();
+        if (playAttempt && typeof playAttempt.catch === "function") {
+          playAttempt.catch(function () {
+            // The browser may require the guest to press Play in the visible audio controls.
+          });
         }
       }
+
       function closePlayer() {
         panel.hidden = true;
         toggle.setAttribute("aria-expanded", "false");
       }
+
       toggle.addEventListener("click", function () {
         if (panel.hidden) openPlayer();
         else closePlayer();
       });
       close.addEventListener("click", closePlayer);
+
+      // Attempt autoplay on page load; browsers may block audible autoplay until user interaction.
+      window.addEventListener("load", function () {
+        const playAttempt = player.play();
+        if (playAttempt && typeof playAttempt.catch === "function") {
+          playAttempt.catch(function () {});
+        }
+      });
     })();
   </script>
 
